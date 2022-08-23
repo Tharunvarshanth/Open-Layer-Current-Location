@@ -15,18 +15,13 @@ function MapLocation() {
   const ref = useRef(null);
   const mapRef = useRef(null);
   const [geolocation, setGeoLocation] = useState({});
-  const [pstnFeature, setPstnFeature] = useState(new Feature());
-
-  const view = new View({
-    center: [0, 0],
-    zoom: 0,
-  });
-
-  const handleLiveLocation = () => {
-    alert(geolocation.getPosition());
-    const coordinates = geolocation.getPosition();
-    pstnFeature.setGeometry(coordinates ? new Point(coordinates) : null);
-  };
+  const [posFeature, setPosFeature] = useState(new Feature());
+  const [viewPoint, setViewPoint] = useState(
+    new View({
+      center: [0, 0],
+      zoom: 2,
+    })
+  );
 
   useEffect(() => {
     if (ref.current && !mapRef.current) {
@@ -36,7 +31,7 @@ function MapLocation() {
           trackingOptions: {
             enableHighAccuracy: true,
           },
-          projection: view.getProjection(),
+          projection: viewPoint.getProjection(),
         })
       );
 
@@ -44,18 +39,18 @@ function MapLocation() {
       positionFeature.setStyle(
         new Style({
           image: new CircleStyle({
-            radius: 8,
+            radius: 4,
             fill: new Fill({
               color: "red",
             }),
             stroke: new Stroke({
-              color: "#fff",
+              color: "#7CFC00",
               width: 2,
             }),
           }),
         })
       );
-      setPstnFeature(positionFeature);
+      setPosFeature(positionFeature);
 
       const vectorLayer = new VectorLayer({
         source: new VectorSource({
@@ -65,7 +60,7 @@ function MapLocation() {
 
       const map = new Map({
         layers: [new TileLayer({ source: new OSM() }), vectorLayer],
-        view: view,
+        view: viewPoint,
         target: ref.current,
       });
 
@@ -73,12 +68,24 @@ function MapLocation() {
     }
   }, []);
 
+  const markMyLocation = () => {
+    alert("Your Location coordinates " + geolocation.getPosition());
+    const coordinates = geolocation.getPosition();
+    setViewPoint(
+      new View({
+        center: coordinates,
+        zoom: 2,
+      })
+    );
+    posFeature.setGeometry(coordinates ? new Point(coordinates) : null);
+  };
+
   return (
     <>
-      <div ref={ref} className="map"></div>
-      <button className="btn" onClick={handleLiveLocation}>
-        Go to Live Location
+      <button className="btn" onClick={markMyLocation}>
+        My Location
       </button>
+      <div ref={ref} className="map"></div>
     </>
   );
 }
